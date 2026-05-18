@@ -14,6 +14,12 @@ Can take you from an image to a fully meshed 3D environment in < 5 minutes, grea
 4. Put an image into the `input/` directory.
 5. Use an adapter in `adapters/`, or run the portable commands directly with `npm run ib:* --`.
 
+Available agent adapters:
+
+- `adapters/openclaw/image-blaster/SKILL.md`
+- `adapters/codex/image-blaster/SKILL.md`
+- `adapters/gemini/image-blaster.md`
+
 Portable setup command:
 
 ```bash

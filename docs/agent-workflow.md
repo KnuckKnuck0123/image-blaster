@@ -36,7 +36,7 @@ npm run ib:image-edit -- --image "<path>" --prompt "<edit prompt>" --output-dir 
 npm run ib:ensure-assets -- --from "<request-json-path>"
 ```
 
-The aliases call `node pipeline/...` directly. Existing Claude skills remain as backward-compatible adapters while new agents should use these neutral commands.
+The aliases call `node pipeline/...` directly. Existing Claude skills remain as backward-compatible adapters while new agents should use these neutral commands. Current first-class adapters live in `adapters/openclaw/`, `adapters/codex/`, and `adapters/gemini/`.
 
 World splats default to `.ply` for compatibility with Blender, Houdini, Unity, Unreal, Spark, and other Gaussian-splat tooling. `ib:world` and `ib:ensure-assets` accept `--splat-format ply|spz|both`; use `ply` unless a downstream target specifically needs compressed SPZ.
 

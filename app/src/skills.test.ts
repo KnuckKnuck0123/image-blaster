@@ -4,6 +4,7 @@ import path from 'path'
 
 const skillsDir = path.resolve(__dirname, '../../.claude/skills')
 const openClawSkill = path.resolve(__dirname, '../../adapters/openclaw/image-blaster/SKILL.md')
+const codexSkill = path.resolve(__dirname, '../../adapters/codex/image-blaster/SKILL.md')
 
 describe('skills', () => {
   it('skills directory exists and contains skill subdirectories', () => {
@@ -35,5 +36,12 @@ describe('skills', () => {
     const content = fs.readFileSync(openClawSkill, 'utf-8')
     expect(content).toContain('npm run ib:project')
     expect(content).toContain('pipeline/')
+  })
+
+  it('includes a Codex adapter skill', () => {
+    expect(fs.existsSync(codexSkill)).toBe(true)
+    const content = fs.readFileSync(codexSkill, 'utf-8')
+    expect(content).toContain('npm run ib:preflight')
+    expect(content).toContain('environment artist')
   })
 })
