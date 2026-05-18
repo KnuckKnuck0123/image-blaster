@@ -25,7 +25,7 @@ npm run ib:project -- --world "my-world" --stage-input
 By default `image-blaster` will use your input image to create:
 
 1. 3D models (`.glb`, `.obj`) of all *dynamic* objects
-2. Gaussian splat (`.spz`) of the *static* environment,
+2. Gaussian splat (`.ply`) of the *static* environment,
 3. Ambient looping sound and object specific physics SFX (`.mp3`)
 
 ### Extensions
@@ -45,6 +45,8 @@ IMAGE-BLASTER uses a few generation models:
 - `gpt-image-2` - alternate image edit provider when the edit skill is asked to prefer it.
 - `hunyuan-3d` - Hunyuan 3D model creates 3D object models through FAL.
 - `elevenlabs-sfx` - ElevenLabs sound effects model creates ambient and object-specific sounds.
+
+World generation defaults to `.ply` splat exports for broader DCC and engine compatibility. If World Labs returns native PLY URLs, the pipeline downloads those directly; otherwise it converts the returned SPZ splats to PLY locally. Use `--splat-format spz` or `--splat-format both` when you explicitly need compressed SPZ artifacts.
 
 3D model creation supports these Hunyuan parameters:
 

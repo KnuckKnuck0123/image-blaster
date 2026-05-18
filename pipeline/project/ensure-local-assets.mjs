@@ -15,11 +15,12 @@ import {
   artifactPath,
   parseIndexedName
 } from "../asset-pipeline/request-metadata.mjs";
+import { convertSpzToPly } from "../splats/convert-spz-to-ply.mjs";
 
 const ALLOWED_ROOTS = ["worlds", "input"];
 
 function usage() {
-  return "Usage: node .claude/scripts/project/ensure-local-assets.mjs --from <world-json-or-request-json> [--force] [--dry-run]";
+  return "Usage: node pipeline/project/ensure-local-assets.mjs --from <world-json-or-request-json> [--force] [--dry-run] [--splat-format ply|spz|both]";
 }
 
 function extensionFromUrl(url, fallback) {
@@ -28,6 +29,10 @@ function extensionFromUrl(url, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function splatUrls(assets, format) {
+  return assets.splats?.[`${format}_urls`] || {};
 }
 
 function resolveProjectPath(value) {
@@ -53,9 +58,10 @@ function indexedJsonInfo(filePath, json) {
   return undefined;
 }
 
-function worldCandidates(json, dir, index) {
-  const assets = json.response?.assets || json.assets;
+function worldCandidates(json, dir, index, options = {}) {
+  const assets = json.response?.assets || json.result?.response?.assets || json.assets;
   if (!assets) return [];
+  const splatFormat = options.splatFormat || "ply";
 
   const candidates = [];
   const glbUrl = assets.mesh?.collider_mesh_url;
@@ -75,7 +81,21 @@ function worldCandidates(json, dir, index) {
     path: path.join(dir, `${index}-world-thumbnail${extensionFromUrl(thumbnailUrl, ".webp")}`)
   });
 
-  for (const [key, url] of Object.entries(assets.splats?.spz_urls || {})) {
+  if (splatFormat === "ply" || splatFormat === "both") {
+    for (const [key, url] of Object.entries(splatUrls(assets, "ply"))) {
+      if (!url) continue;
+      candidates.push({
+        role: `world-${key}`,
+        url,
+        path: path.join(dir, `${index}-world-${safeFileName(key)}.ply`)
+      });
+    }
+  }
+
+  const keepSpz = splatFormat === "spz" || splatFormat === "both" || !Object.keys(splatUrls(assets, "ply")).length;
+  if (!keepSpz) return candidates;
+
+  for (const [key, url] of Object.entries(splatUrls(assets, "spz"))) {
     if (!url) continue;
     candidates.push({
       role: `world-${key}`,
@@ -129,11 +149,43 @@ async function ensureCandidate(candidate, options) {
   return { ...candidate, path: relative, action: exists ? "overwritten" : "downloaded" };
 }
 
+async function ensurePlyFromSpz(results, options) {
+  const { dryRun, splatFormat } = options;
+  if (splatFormat !== "ply" && splatFormat !== "both") return [];
+
+  const converted = [];
+  for (const result of results) {
+    const spzPath = result.path && path.extname(result.path).toLowerCase() === ".spz" ? result.path : undefined;
+    if (!spzPath) continue;
+
+    const plyPath = spzPath.replace(/\.spz$/i, ".ply");
+    if (await pathExists(plyPath)) {
+      converted.push({ ...result, path: plyPath, action: "exists", role: `${result.role}-ply` });
+      continue;
+    }
+
+    if (dryRun) {
+      converted.push({ ...result, path: plyPath, action: "would-convert", role: `${result.role}-ply` });
+      continue;
+    }
+
+    if (!(await pathExists(spzPath))) continue;
+    const outputPath = await convertSpzToPly(spzPath, plyPath);
+    converted.push({ ...result, path: outputPath, action: "converted", role: `${result.role}-ply` });
+  }
+
+  return converted;
+}
+
 async function main() {
   const { flags, positionals } = parseArgs();
   const from = one(flags, "from") || positionals[0];
   const force = Boolean(flags.force);
   const dryRun = Boolean(flags["dry-run"]);
+  const splatFormat = one(flags, "splat-format") || "ply";
+  if (!["ply", "spz", "both"].includes(splatFormat)) {
+    throw new Error("--splat-format must be one of: ply, spz, both.");
+  }
   if (!from) throw new Error(usage());
 
   const { resolved: fromPath, relative: fromRelative } = resolveProjectPath(from);
@@ -145,7 +197,7 @@ async function main() {
 
   const dir = path.dirname(fromPath);
   const candidates = [
-    ...worldCandidates(json, dir, info.index),
+    ...worldCandidates(json, dir, info.index, { splatFormat }),
     ...downloadedFileCandidates(json, dir, info.index, info.slug || "file")
   ];
   const deduped = [...new Map(candidates.map((candidate) => [candidate.path, candidate])).values()];
@@ -153,6 +205,7 @@ async function main() {
   for (const candidate of deduped) {
     results.push(await ensureCandidate(candidate, { force, dryRun }));
   }
+  results.push(...await ensurePlyFromSpz(results, { dryRun, splatFormat }));
 
   console.log(JSON.stringify({
     source: fromRelative,
@@ -160,6 +213,7 @@ async function main() {
     slug: info.slug,
     force,
     dry_run: dryRun,
+    splat_format: splatFormat,
     count: results.length,
     results
   }, null, 2));

@@ -18,6 +18,6 @@ function localWorldAssetUrl(url: string | undefined): string {
 }
 
 export function getSplatUrl(world: World): string {
-  const urls = world.assets.splats.spz_urls
-  return localWorldAssetUrl(urls.full_res)
+  return localWorldAssetUrl(world.assets.splats.ply_urls?.full_res)
+    || localWorldAssetUrl(world.assets.splats.spz_urls.full_res)
 }

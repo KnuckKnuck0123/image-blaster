@@ -10,6 +10,7 @@ Repository contract:
 - Shared project state lives under worlds/<slug>/.
 - Portable scripts live under pipeline/.
 - Use root aliases: ib:project, ib:world, ib:3d, ib:sfx, ib:image-edit, ib:fal, ib:ensure-assets.
+- World splats default to `.ply`; use `--splat-format spz` or `--splat-format both` only for explicit SPZ needs.
 - Do not write provider secrets into files.
 - Ask before paid provider calls if the endpoint, target, or generation intent is ambiguous.
 

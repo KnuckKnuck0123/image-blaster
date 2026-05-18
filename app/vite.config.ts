@@ -9,6 +9,7 @@ type WorldManifest = Record<string, unknown> & {
     imagery?: Record<string, unknown>
     mesh?: Record<string, unknown>
     splats?: Record<string, unknown> & {
+      ply_urls?: Record<string, string | undefined>
       spz_urls?: Record<string, string | undefined>
     }
   }
@@ -149,7 +150,7 @@ function worldsPlugin(): Plugin {
   const AUDIO_EXTENSIONS = new Set(['.mp3', '.ogg', '.wav', '.m4a', '.opus'])
   const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.avif'])
   const PROJECT_VERSION = 1
-  const WORLD_SPZ_KEYS = new Set(['100k', '150k', '500k', 'full_res'])
+  const WORLD_SPLAT_KEYS = new Set(['100k', '150k', '500k', 'full_res'])
 
   function readSourceImageVersions(slug: string) {
     const sourceDir = path.join(worldsDir, slug, 'source')
@@ -338,6 +339,28 @@ function worldsPlugin(): Plugin {
     return byIndex(matches, index)?.name
   }
 
+  function localSplatUrls(files: fs.Dirent[], slug: string, index: number | undefined, existingUrls: Record<string, string | undefined>, extension: '.ply' | '.spz') {
+    const splatUrls: Record<string, string> = {}
+
+    for (const key of Object.keys(existingUrls)) {
+      const assetKey = assetKeyForFilename(key)
+      const filename = worldAssetFilename(files, index, `world-${assetKey}`, new Set([extension]))
+      if (filename) splatUrls[key] = worldAssetUrl(slug, filename)
+    }
+
+    for (const file of indexedFiles(files, { extensions: new Set([extension]) })) {
+      const match = file.slug.match(/^world-(100k|150k|500k|full_res)$/)
+      if (!match || !WORLD_SPLAT_KEYS.has(match[1])) continue
+
+      const key = match[1]
+      if (index === undefined || file.index === index) {
+        splatUrls[key] = worldAssetUrl(slug, file.name)
+      }
+    }
+
+    return splatUrls
+  }
+
   function readWorldManifest(slug: string) {
     const worldDir = path.join(worldsDir, slug, 'output', 'world')
     const files = visibleFiles(worldDir)
@@ -384,24 +407,10 @@ function worldsPlugin(): Plugin {
 
   function withLocalWorldAssets(slug: string, world: WorldManifest, index?: number) {
     const files = visibleFiles(path.join(worldsDir, slug, 'output', 'world'))
+    const existingPlyUrls = world.assets?.splats?.ply_urls ?? {}
     const existingSpzUrls = world.assets?.splats?.spz_urls ?? {}
-    const spzUrls: Record<string, string> = {}
-
-    for (const key of Object.keys(existingSpzUrls)) {
-      const assetKey = assetKeyForFilename(key)
-      const filename = worldAssetFilename(files, index, `world-${assetKey}`, new Set(['.spz']))
-      if (filename) spzUrls[key] = worldAssetUrl(slug, filename)
-    }
-
-    for (const file of indexedFiles(files, { extensions: new Set(['.spz']) })) {
-      const match = file.slug.match(/^world-(100k|150k|500k|full_res)$/)
-      if (!match || !WORLD_SPZ_KEYS.has(match[1])) continue
-
-      const key = match[1]
-      if (index === undefined || file.index === index) {
-        spzUrls[key] = worldAssetUrl(slug, file.name)
-      }
-    }
+    const plyUrls = localSplatUrls(files, slug, index, existingPlyUrls, '.ply')
+    const spzUrls = localSplatUrls(files, slug, index, existingSpzUrls, '.spz')
 
     const collider = worldAssetFilename(files, index, 'world', MODEL_EXTENSIONS)
     const pano = worldAssetFilename(files, index, 'world-pano', IMAGE_EXTENSIONS)
@@ -421,6 +430,7 @@ function worldsPlugin(): Plugin {
         },
         splats: {
           ...(world.assets?.splats ?? {}),
+          ply_urls: plyUrls,
           spz_urls: spzUrls,
           semantics_metadata: {
             metric_scale_factor: 1,
@@ -467,11 +477,12 @@ function worldsPlugin(): Plugin {
       if (!manifest && !request) return []
       const world = manifest ? withLocalWorldAssets(slug, manifest, index) : undefined
       const colliderUrl = String(world?.assets?.mesh?.collider_mesh_url || '')
+      const plyUrls = world?.assets?.splats?.ply_urls ?? {}
       const spzUrls = world?.assets?.splats?.spz_urls ?? {}
       const plate = worldAssetFilename(files, index, 'world-plate', IMAGE_EXTENSIONS)
       const plateImageUrl = plate ? worldAssetUrl(slug, plate) : requestPlateImageUrl(request?.data)
       const requestStatus = statusText(request?.data.status)
-      const complete = Boolean(world && colliderUrl && Object.keys(spzUrls).length)
+      const complete = Boolean(world && colliderUrl && (Object.keys(plyUrls).length || Object.keys(spzUrls).length))
       return {
         index,
         label: `v${index}`,
@@ -695,6 +706,7 @@ function worldsPlugin(): Plugin {
       server.watcher.on('unlinkDir', onWorldFsChange)
       const MIME: Record<string, string> = {
         '.spz': 'application/octet-stream',
+        '.ply': 'application/octet-stream',
         '.glb': 'model/gltf-binary',
         '.png': 'image/png',
         '.webp': 'image/webp',

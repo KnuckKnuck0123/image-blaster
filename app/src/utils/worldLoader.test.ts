@@ -13,6 +13,9 @@ const exampleWorld: World = {
     imagery: { pano_url: '/worlds/example/output/world/0-world-pano.png' },
     mesh: { collider_mesh_url: '/worlds/example/output/world/0-world.glb' },
     splats: {
+      ply_urls: {
+        '500k': '/worlds/example/output/world/0-world-500k.ply',
+      },
       spz_urls: {
         '500k': '/worlds/example/output/world/0-world-500k.spz',
         '150k': '/worlds/example/output/world/0-world-150k.spz',
@@ -66,26 +69,42 @@ describe('worldLoader', () => {
     vi.unstubAllGlobals()
   })
 
-  it('getSplatUrl always uses full-res', () => {
+  it('getSplatUrl prefers full-res PLY', () => {
     const world = {
       ...exampleWorld,
       assets: {
         ...exampleWorld.assets,
         splats: {
           ...exampleWorld.assets.splats,
-          spz_urls: {
-            ...exampleWorld.assets.splats.spz_urls,
-            full_res: '/worlds/example/output/world/0-world-full_res.spz',
+          ply_urls: {
+            ...exampleWorld.assets.splats.ply_urls,
+            full_res: '/worlds/example/output/world/0-world-full_res.ply',
           },
+          spz_urls: { full_res: '/worlds/example/output/world/0-world-full_res.spz' },
         },
       },
     }
     const url = getSplatUrl(world)
-    expect(url).toBe('/worlds/example/output/world/0-world-full_res.spz')
+    expect(url).toBe('/worlds/example/output/world/0-world-full_res.ply')
   })
 
   it('getSplatUrl returns empty when full-res is absent', () => {
     expect(getSplatUrl(exampleWorld)).toBe('')
+  })
+
+  it('getSplatUrl falls back to full-res SPZ', () => {
+    const world = {
+      ...exampleWorld,
+      assets: {
+        ...exampleWorld.assets,
+        splats: {
+          ...exampleWorld.assets.splats,
+          ply_urls: {},
+          spz_urls: { full_res: '/worlds/example/output/world/0-world-full_res.spz' },
+        },
+      },
+    }
+    expect(getSplatUrl(world)).toBe('/worlds/example/output/world/0-world-full_res.spz')
   })
 
   it('getSplatUrl ignores non-full-res splats', () => {
@@ -95,6 +114,7 @@ describe('worldLoader', () => {
         ...exampleWorld.assets,
         splats: {
           ...exampleWorld.assets.splats,
+          ply_urls: { '500k': '/worlds/example/output/world/0-world-500k.ply' },
           spz_urls: { '150k': '/worlds/example/output/world/0-world-150k.spz' },
         },
       },

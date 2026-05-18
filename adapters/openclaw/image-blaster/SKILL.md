@@ -36,6 +36,7 @@ npm run ib:world -- --world "<slug>" --prompt "<empty static environment prompt>
 ```
 
 Use `image.json` as scene context and subtract confirmed/removed objects from the prompt.
+World splats default to `.ply`; pass `--splat-format spz` or `--splat-format both` only when the user needs compressed SPZ output.
 
 5. Generate one 3D object at a time:
 

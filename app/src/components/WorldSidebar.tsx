@@ -153,7 +153,9 @@ export function WorldSidebar({
               const selectedVersionIndex = isActive ? activeWorldVersionIndex : latestVersion?.index
               const selectedVersion = worldVersions.find((version) => version.index === selectedVersionIndex) ?? latestVersion
               const displayWorld = selectedVersion?.world ?? world
-              const hasSplatFile = Boolean(displayWorld && Object.values(displayWorld.assets.splats.spz_urls).some(Boolean))
+              const splatUrls = displayWorld ? { ...(displayWorld.assets.splats.spz_urls ?? {}), ...(displayWorld.assets.splats.ply_urls ?? {}) } : {}
+              const hasPlySplatFile = Boolean(displayWorld && Object.values(displayWorld.assets.splats.ply_urls ?? {}).some(Boolean))
+              const hasSplatFile = Boolean(Object.values(splatUrls).some(Boolean))
               const hasWorldRow = Boolean(selectedVersion || hasSplatFile)
               const worldLoading = Boolean(selectedVersion && !selectedVersion.complete && isLoadingStatus(selectedVersion.status))
               const sourcePreview: WorldHoverPreview = {
@@ -278,7 +280,7 @@ export function WorldSidebar({
                                   <GlobeHemisphereWestIcon size={14} weight="regular" />
                                 </span>
                               )}
-                              {hasSplatFile && <FileExtensionBadge extension=".spz" />}
+                              {hasSplatFile && <FileExtensionBadge extension={hasPlySplatFile ? '.ply' : '.spz'} />}
                             </span>
                             <span className="min-w-0 flex-1 text-white/85 text-xs font-semibold leading-tight truncate">
                               {slug}

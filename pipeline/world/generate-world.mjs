@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { copyFile, readFile, readdir } from "node:fs/promises";
+import { copyFile, readFile, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import {
   downloadFile,
@@ -22,6 +22,7 @@ import {
   parseIndexedName,
   requestPath
 } from "../asset-pipeline/request-metadata.mjs";
+import { convertSpzToPly } from "../splats/convert-spz-to-ply.mjs";
 
 const ENDPOINT = "https://api.worldlabs.ai/marble/v1";
 const MODEL = "marble-1.1";
@@ -30,6 +31,10 @@ const IMAGE_EXTENSIONS = new Set([".avif", ".gif", ".heic", ".heif", ".jpeg", ".
 async function downloadAsset(url, destPath) {
   if (await pathExists(destPath)) return destPath;
   return downloadFile(url, destPath);
+}
+
+function splatUrls(assets, format) {
+  return assets.splats?.[`${format}_urls`] || {};
 }
 
 async function copyWorldPlate(image, outputDir, index) {
@@ -57,9 +62,10 @@ function assetKeyForFilename(key) {
   return String(key).replace(/[^a-z0-9_-]/gi, "_");
 }
 
-async function downloadWorldAssets(worldResponse, outputDir, index) {
+async function downloadWorldAssets(worldResponse, outputDir, index, options = {}) {
   const assets = worldResponse.assets || {};
-  const result = { spz: {} };
+  const splatFormat = options.splatFormat || "ply";
+  const result = { spz: {}, ply: {} };
 
   const glbUrl = assets.mesh?.collider_mesh_url;
   if (glbUrl) {
@@ -78,10 +84,27 @@ async function downloadWorldAssets(worldResponse, outputDir, index) {
     result.thumbnail = await downloadAsset(thumbnailUrl, path.join(outputDir, `${index}-world-thumbnail${ext}`));
   }
 
-  const spzUrls = assets.splats?.spz_urls || {};
+  const shouldKeepSpz = splatFormat === "spz" || splatFormat === "both";
+  const shouldWritePly = splatFormat === "ply" || splatFormat === "both";
+  const plyUrls = splatUrls(assets, "ply");
+  const spzUrls = splatUrls(assets, "spz");
+
+  if (shouldWritePly) {
+    for (const [key, url] of Object.entries(plyUrls)) {
+      if (!url) continue;
+      result.ply[key] = await downloadAsset(url, path.join(outputDir, `${index}-world-${assetKeyForFilename(key)}.ply`));
+    }
+  }
+
+  const needsSpzForConversion = shouldWritePly && Object.keys(result.ply).length === 0;
   for (const [key, url] of Object.entries(spzUrls)) {
     if (!url) continue;
-    result.spz[key] = await downloadAsset(url, path.join(outputDir, `${index}-world-${assetKeyForFilename(key)}.spz`));
+    const spzPath = await downloadAsset(url, path.join(outputDir, `${index}-world-${assetKeyForFilename(key)}.spz`));
+    if (shouldKeepSpz) result.spz[key] = spzPath;
+    if (shouldWritePly && !result.ply[key]) {
+      result.ply[key] = await convertSpzToPly(spzPath, path.join(outputDir, `${index}-world-${assetKeyForFilename(key)}.ply`));
+      if (!shouldKeepSpz && needsSpzForConversion) await unlink(spzPath).catch(() => {});
+    }
   }
 
   return result;
@@ -277,6 +300,7 @@ export async function generateWorld(options) {
     world,
     image,
     prompt,
+    splatFormat = "ply",
     regenerate = false,
     pollIntervalMs = 15000
   } = options;
@@ -350,12 +374,13 @@ export async function generateWorld(options) {
   await writeJson(worldPath, completed.response);
 
   const plate = await copyWorldPlate(image, outputDir, requestIndex);
-  const downloaded = await downloadWorldAssets(completed.response, outputDir, requestIndex);
+  const downloaded = await downloadWorldAssets(completed.response, outputDir, requestIndex, { splatFormat });
   const downloadedFiles = [
     plate,
     downloaded.glb,
     downloaded.pano,
     downloaded.thumbnail,
+    ...Object.values(downloaded.ply),
     ...Object.values(downloaded.spz)
   ].filter(Boolean);
   await writeWorldRequest(metadataPath, {
@@ -388,6 +413,10 @@ async function main() {
   }
 
   const prompt = [...many(flags, "prompt"), ...many(flags, "description")].join("\n").trim() || undefined;
+  const splatFormat = one(flags, "splat-format") || "ply";
+  if (!["ply", "spz", "both"].includes(splatFormat)) {
+    throw new Error("--splat-format must be one of: ply, spz, both.");
+  }
   const explicitImage = one(flags, "image");
   const image = explicitImage || await latestSourceImage(`worlds/${world}/source`);
 
@@ -395,6 +424,7 @@ async function main() {
     world,
     image,
     prompt,
+    splatFormat,
     regenerate: Boolean(flags.regenerate),
     pollIntervalMs: one(flags, "poll-interval-ms", 15000)
   });

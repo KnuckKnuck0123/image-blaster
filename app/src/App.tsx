@@ -105,7 +105,8 @@ function LoadedApp({
   const activeWorld = activeWorldVersion?.world ?? entry.world
   const renderableObjectAssets = entry.objectAssets.filter((asset) => asset.complete && asset.url)
   const renderableAllObjectAssets = entry.allObjectAssets.filter((asset) => asset.complete && asset.url)
-  const hasSidebarWorldRow = Boolean(activeWorldVersion || (activeWorld && Object.values(activeWorld.assets.splats.spz_urls).some(Boolean)))
+  const activeSplatUrls = activeWorld ? { ...(activeWorld.assets.splats.spz_urls ?? {}), ...(activeWorld.assets.splats.ply_urls ?? {}) } : {}
+  const hasSidebarWorldRow = Boolean(activeWorldVersion || Object.values(activeSplatUrls).some(Boolean))
   const emptyWorld = !hasSidebarWorldRow && !entry.objectAssets.length
   const { sceneProject, sceneProjectReady, updateSceneProject } = useSceneProject(entry.slug, location, entry.sceneProject)
   const sceneProjectActive = Boolean(sceneProject && sceneProjectEnabled)

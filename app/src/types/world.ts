@@ -2,6 +2,12 @@ export interface WorldAssets {
   mesh: { collider_mesh_url: string }
   imagery: { pano_url: string }
   splats: {
+    ply_urls?: {
+      '500k'?: string
+      '100k'?: string
+      '150k'?: string
+      full_res?: string
+    }
     spz_urls: {
       '500k'?: string
       '100k'?: string
