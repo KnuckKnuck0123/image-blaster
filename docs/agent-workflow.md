@@ -27,6 +27,7 @@ worlds/<slug>/
 Run these from the repository root:
 
 ```bash
+npm run ib:preflight
 npm run ib:project -- --world "<slug>" --stage-input
 npm run ib:world -- --world "<slug>" --prompt "<empty static environment prompt>"
 npm run ib:3d -- --world "<slug>" --object-id "<object-slug>"
@@ -39,12 +40,15 @@ The aliases call `node pipeline/...` directly. Existing Claude skills remain as 
 
 World splats default to `.ply` for compatibility with Blender, Houdini, Unity, Unreal, Spark, and other Gaussian-splat tooling. `ib:world` and `ib:ensure-assets` accept `--splat-format ply|spz|both`; use `ply` unless a downstream target specifically needs compressed SPZ.
 
+Run `ib:preflight` before paid work. It loads `.env`, reports which provider keys are present, shows which stages are ready, and prints rough per-operation cost notes. Use `--strict` in automation to fail when required generation keys are missing.
+
 ## Agent Responsibilities
 
 - Resolve one world slug before running generation commands.
 - Stage input images through `ib:project` so paths are stable.
 - Analyze images literally and write JSON before paid generation.
 - Ask before paid provider calls when the exact operation is ambiguous.
+- Run `ib:preflight` before paid provider calls unless the current session already verified keys.
 - Keep provider keys in the local environment; do not write secrets to project files.
 - Ensure provider URLs are downloaded into local files before reporting success.
 

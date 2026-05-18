@@ -12,6 +12,12 @@ Use this skill from the repository root. Treat `pipeline/` as the execution laye
 1. Resolve or create a project:
 
 ```bash
+npm run ib:preflight
+```
+
+Use `--strict` before paid generation when missing keys should block the run.
+
+```bash
 npm run ib:project -- --world "<slug>" --stage-input
 ```
 

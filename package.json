@@ -17,7 +17,8 @@
     "ib:image-edit": "node pipeline/image-edit/generate-edit.mjs",
     "ib:fal": "node pipeline/fal/run-fal.mjs",
     "ib:ensure-assets": "node pipeline/project/ensure-local-assets.mjs",
-    "ib:spz-to-ply": "node pipeline/splats/convert-spz-to-ply.mjs"
+    "ib:spz-to-ply": "node pipeline/splats/convert-spz-to-ply.mjs",
+    "ib:preflight": "node pipeline/project/preflight.mjs"
   },
   "dependencies": {
     "spz-js": "^1.2.5"

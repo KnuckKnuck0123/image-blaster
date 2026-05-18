@@ -17,8 +17,11 @@ Can take you from an image to a fully meshed 3D environment in < 5 minutes, grea
 Portable setup command:
 
 ```bash
+npm run ib:preflight
 npm run ib:project -- --world "my-world" --stage-input
 ```
+
+`ib:preflight` reads `.env`, reports whether `WORLD_LABS_API_KEY` and `FAL_KEY` are present, and prints the rough cost envelope for each paid provider before generation.
 
 ### Description
 
