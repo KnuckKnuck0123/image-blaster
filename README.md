@@ -1,7 +1,7 @@
 <img width="960" height="540" alt="image-blaster-1" src="https://github.com/user-attachments/assets/d294e420-eb48-4f00-b6a8-13005442d1a8" />
 
 ## `image-blaster`
-Creates 3D environments, SFX, and meshes from a single image using Claude skills, World Labs, and FAL. 
+Creates 3D environments, SFX, and meshes from a single image using portable pipeline scripts, World Labs, FAL, and thin adapters for agent shells.
 
 Can take you from an image to a fully meshed 3D environment in < 5 minutes, great for jumpstarting 3D work. Go full blast.
 
@@ -10,9 +10,15 @@ Can take you from an image to a fully meshed 3D environment in < 5 minutes, grea
 
 1. Open a Terminal, enter `git clone https://github.com/neilsonnn/image-blaster`
 2. Enter the directory with `cd image-blaster`
-3. Run `claude` (install with `curl -fsSL https://claude.ai/install.sh | bash`)
-4. Say hello to Claude, and give them your API key for [World Labs](https://platform.worldlabs.ai/) and [FAL](https://fal.ai/).
-5. Put an image into `input/` directory and ask Claude to `blast it and confirm each step with me`.
+3. Configure provider keys in your shell, including [World Labs](https://platform.worldlabs.ai/) and [FAL](https://fal.ai/).
+4. Put an image into the `input/` directory.
+5. Use an adapter in `adapters/`, or run the portable commands directly with `npm run ib:* --`.
+
+Portable setup command:
+
+```bash
+npm run ib:project -- --world "my-world" --stage-input
+```
 
 ### Description
 
@@ -57,4 +63,4 @@ IMAGE-BLASTER uses a few generation models:
 
 ### Development
 
-- remove `/app` from the `.claudeignore` file to give Claude the ability to change the React viewer.
+The core scripts live in `pipeline/`. Existing `.claude/` skills remain for backward compatibility, but new agent support should use `docs/agent-workflow.md` and `adapters/`.

@@ -5,10 +5,17 @@
     "app"
   ],
   "scripts": {
-    "dev": "bun --cwd=app run dev",
-    "build": "bun --cwd=app run build",
-    "preview": "bun --cwd=app run preview",
-    "test": "bun --cwd=app run test",
-    "typecheck": "bun --cwd=app run typecheck"
+    "dev": "npm --prefix app run dev",
+    "build": "npm --prefix app run build",
+    "preview": "npm --prefix app run preview",
+    "test": "npm --prefix app run test",
+    "typecheck": "npm --prefix app run typecheck",
+    "ib:project": "node pipeline/project/project-state.mjs",
+    "ib:world": "node pipeline/world/generate-world.mjs",
+    "ib:3d": "node pipeline/asset-pipeline/generate-single-asset.mjs",
+    "ib:sfx": "node pipeline/sfx/fal-elevenlabs-sfx.mjs",
+    "ib:image-edit": "node pipeline/image-edit/generate-edit.mjs",
+    "ib:fal": "node pipeline/fal/run-fal.mjs",
+    "ib:ensure-assets": "node pipeline/project/ensure-local-assets.mjs"
   }
 }

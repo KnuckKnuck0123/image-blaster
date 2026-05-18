@@ -64,9 +64,9 @@ export function WorldSidebar({
     setMenuOpen(false)
   }
 
-  const openClaudeTerminal = () => {
-    fetch('/__open-claude-terminal').catch((error) => {
-      console.warn('Could not open Claude terminal.', error)
+  const openProjectTerminal = () => {
+    fetch('/__open-project-terminal').catch((error) => {
+      console.warn('Could not open project terminal.', error)
     })
   }
 
@@ -118,15 +118,15 @@ export function WorldSidebar({
         </a>
         {canOpenLocalFolders && (
           <Tooltip
-            content="Open new Claude terminal"
+            content="Open project terminal"
             delayDuration={0}
             side="right"
           >
             <AppButton
-              onClick={openClaudeTerminal}
+              onClick={openProjectTerminal}
               className="h-7 w-7 justify-center p-1 text-white"
-              aria-label="Open new Claude terminal"
-              title="Open Claude terminal"
+              aria-label="Open project terminal"
+              title="Open project terminal"
             >
               <TerminalWindowIcon size={16} weight="regular" />
             </AppButton>

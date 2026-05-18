@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 
 const skillsDir = path.resolve(__dirname, '../../.claude/skills')
+const openClawSkill = path.resolve(__dirname, '../../adapters/openclaw/image-blaster/SKILL.md')
 
 describe('skills', () => {
   it('skills directory exists and contains skill subdirectories', () => {
@@ -27,5 +28,12 @@ describe('skills', () => {
       const hasSteps = /^## Steps/m.test(content)
       expect(hasInstructions || hasSteps, `${dir}: missing ## Instructions or ## Steps`).toBe(true)
     }
+  })
+
+  it('includes an OpenClaw adapter skill', () => {
+    expect(fs.existsSync(openClawSkill)).toBe(true)
+    const content = fs.readFileSync(openClawSkill, 'utf-8')
+    expect(content).toContain('npm run ib:project')
+    expect(content).toContain('pipeline/')
   })
 })
