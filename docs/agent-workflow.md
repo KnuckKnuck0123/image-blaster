@@ -44,7 +44,7 @@ The aliases call `node pipeline/...` directly. Existing Claude skills remain as 
 
 World splats default to `.ply` for compatibility with Blender, Houdini, Unity, Unreal, Spark, and other Gaussian-splat tooling. `ib:world` and `ib:ensure-assets` accept `--splat-format ply|spz|both`; use `ply` unless a downstream target specifically needs compressed SPZ.
 
-For Rhino, convert Gaussian-splat PLY files to ordinary RGB point-cloud PLY files before import. `ib:rhino-ply` converts one file. `ib:rhino-handoff` creates `worlds/<slug>/handoff/rhino/` with the collider GLB, RGB point cloud, panorama, manifest, and import notes. The default handoff prefers the `500k` point cloud for visual fidelity; pass `--density 150k` or `--density 100k` for lighter files.
+For Rhino, convert Gaussian-splat PLY files to ordinary RGB point-cloud PLY files before import. `ib:rhino-ply` converts one file. `ib:rhino-handoff` creates `worlds/<slug>/handoff/rhino/` with the collider GLB, original Gaussian splat PLY for SuperSplat, RGB point cloud for Rhino, panorama, manifest, and import notes. The default handoff prefers the `500k` point cloud for visual fidelity; pass `--density 150k` or `--density 100k` for lighter files.
 
 Run `ib:preflight` before paid work. It loads `.env`, reports which provider keys are present, shows which stages are ready, and prints rough per-operation cost notes. Use `--strict` in automation to fail when required generation keys are missing.
 
@@ -85,12 +85,13 @@ The agent should not invent a separate artifact layout. It should add decisions 
 `ib:rhino-handoff` is for Rhino-centered design review, not game-runtime delivery. It packages:
 
 - `<slug>-mesh.glb`: rough spatial mesh / scale scaffold.
-- `<slug>-point-cloud-500k-rgb.ply`: default visual/detail point cloud.
+- `<slug>-splat-500k.ply`: original Gaussian splat for SuperSplat and compatible splat tooling.
+- `<slug>-point-cloud-500k-rgb.ply`: Rhino RGB visual/detail point cloud.
 - `<slug>-panorama.png`: panorama reference or environment plate.
 - `manifest.json`: machine-readable source and file record.
 - `README.md`: import order and notes.
 
-World Labs GLB exports may have vertex colors but no image textures, materials, or UVs. Treat the GLB as geometry context. Treat the RGB point cloud as the primary visual read.
+World Labs GLB exports may have vertex colors but no image textures, materials, or UVs. Treat the GLB as geometry context. Treat the RGB point cloud as the primary Rhino visual read. Treat the original Gaussian splat PLY as the SuperSplat asset; the RGB point-cloud PLY is no longer a valid Gaussian splat.
 
 ## Agent Responsibilities
 

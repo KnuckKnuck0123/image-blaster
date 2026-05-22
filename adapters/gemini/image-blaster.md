@@ -33,5 +33,5 @@ Standard flow:
 9. For Rhino workflows, package the handoff:
    npm run ib:rhino-handoff -- --world "<slug>"
 
-Final responses should list local artifacts, request metadata files, and unresolved provider or credential issues. For Rhino, explain that the GLB is the spatial scaffold and the RGB point-cloud PLY is the visual/detail layer.
+Final responses should list local artifacts, request metadata files, and unresolved provider or credential issues. For Rhino/SuperSplat handoff, explain that the GLB is the spatial scaffold, the RGB point-cloud PLY is for Rhino, and the original Gaussian splat PLY is for SuperSplat.
 ```

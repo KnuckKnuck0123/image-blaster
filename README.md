@@ -82,7 +82,7 @@ Open `http://127.0.0.1:5173/my-world`.
 npm run ib:rhino-handoff -- --world "my-world"
 ```
 
-This writes `worlds/my-world/handoff/rhino/` with a GLB mesh, RGB point-cloud PLY, panorama, manifest, and import notes.
+This writes `worlds/my-world/handoff/rhino/` with a GLB mesh, original Gaussian splat PLY, Rhino RGB point-cloud PLY, panorama, manifest, and import notes.
 
 ## Use With An Agent
 
@@ -133,7 +133,7 @@ IMAGE-BLASTER uses a few generation models:
 
 World generation defaults to `.ply` splat exports for broader DCC and engine compatibility. If World Labs returns native PLY URLs, the pipeline downloads those directly; otherwise it converts the returned SPZ splats to PLY locally. Use `--splat-format spz` or `--splat-format both` when you explicitly need compressed SPZ artifacts.
 
-Rhino and some DCC tools do not understand Gaussian-splat PLY color fields such as `f_dc_0`, `f_dc_1`, and `f_dc_2`. Use `ib:rhino-ply` to convert a splat PLY into a standard RGB point-cloud PLY, or `ib:rhino-handoff` to package the collider GLB, RGB point cloud, panorama, manifest, and import notes:
+Rhino and some DCC tools do not understand Gaussian-splat PLY color fields such as `f_dc_0`, `f_dc_1`, and `f_dc_2`. Use `ib:rhino-ply` to convert a splat PLY into a standard RGB point-cloud PLY, or `ib:rhino-handoff` to package the collider GLB, original Gaussian splat PLY for SuperSplat, RGB point cloud for Rhino, panorama, manifest, and import notes:
 
 ```bash
 npm run ib:rhino-ply -- --input worlds/my-world/output/world/0-world-500k.ply

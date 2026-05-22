@@ -82,7 +82,7 @@ npm run ib:ensure-assets -- --from "<request-json-path>"
 npm run ib:rhino-handoff -- --world "<slug>"
 ```
 
-This creates `worlds/<slug>/handoff/rhino/` with a collider GLB, 500k RGB point-cloud PLY, panorama, manifest, and README. Treat the GLB as spatial scaffold and the RGB PLY as the visual/detail layer. Use `--density 150k` or `--density 100k` for lighter Rhino imports.
+This creates `worlds/<slug>/handoff/rhino/` with a collider GLB, original Gaussian splat PLY for SuperSplat, 500k RGB point-cloud PLY for Rhino, panorama, manifest, and README. Treat the GLB as spatial scaffold and the RGB PLY as the Rhino visual/detail layer. Use `--density 150k` or `--density 100k` for lighter Rhino imports.
 
 ## Art Direction Rules
 
@@ -91,7 +91,7 @@ This creates `worlds/<slug>/handoff/rhino/` with a collider GLB, 500k RGB point-
 - For Noah's default lane, lean industrial / military / machine / tactical when it fits the source, but do not overwrite the source subject.
 - Use cheap reference edits and prompt refinement before expensive regeneration.
 - Report local artifact paths, request metadata paths, and unresolved credential/provider issues.
-- For Rhino, report the handoff folder and explain the GLB/point-cloud split.
+- For Rhino/SuperSplat, report the handoff folder and explain which PLY goes to each tool.
 
 ## Safety
 
