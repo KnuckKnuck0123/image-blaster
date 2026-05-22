@@ -57,6 +57,13 @@ IMAGE-BLASTER uses a few generation models:
 
 World generation defaults to `.ply` splat exports for broader DCC and engine compatibility. If World Labs returns native PLY URLs, the pipeline downloads those directly; otherwise it converts the returned SPZ splats to PLY locally. Use `--splat-format spz` or `--splat-format both` when you explicitly need compressed SPZ artifacts.
 
+Rhino and some DCC tools do not understand Gaussian-splat PLY color fields such as `f_dc_0`, `f_dc_1`, and `f_dc_2`. Use `ib:rhino-ply` to convert a splat PLY into a standard RGB point-cloud PLY, or `ib:rhino-handoff` to package the collider GLB, RGB point cloud, panorama, manifest, and import notes:
+
+```bash
+npm run ib:rhino-ply -- --input worlds/my-world/output/world/0-world-500k.ply
+npm run ib:rhino-handoff -- --world my-world
+```
+
 3D model creation supports these Hunyuan parameters:
 
 - `--face-count <40000-1500000>`: target face count. IMAGE-BLASTER defaults to `50000`; Hunyuan's API default is `500000`.

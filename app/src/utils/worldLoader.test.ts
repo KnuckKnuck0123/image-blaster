@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { type World, type WorldEntry } from '../types/world'
+import { ViewerQuality, type World, type WorldEntry } from '../types/world'
 
 const exampleWorld: World = {
   world_id: 'test-id',
@@ -69,7 +69,7 @@ describe('worldLoader', () => {
     vi.unstubAllGlobals()
   })
 
-  it('getSplatUrl prefers full-res PLY', () => {
+  it('getSplatUrl prefers 500k PLY for high quality', () => {
     const world = {
       ...exampleWorld,
       assets: {
@@ -85,11 +85,28 @@ describe('worldLoader', () => {
       },
     }
     const url = getSplatUrl(world)
-    expect(url).toBe('/worlds/example/output/world/0-world-full_res.ply')
+    expect(url).toBe('/worlds/example/output/world/0-world-500k.ply')
   })
 
-  it('getSplatUrl returns empty when full-res is absent', () => {
-    expect(getSplatUrl(exampleWorld)).toBe('')
+  it('getSplatUrl prefers 150k for low quality', () => {
+    const world = {
+      ...exampleWorld,
+      assets: {
+        ...exampleWorld.assets,
+        splats: {
+          ...exampleWorld.assets.splats,
+          ply_urls: {
+            '500k': '/worlds/example/output/world/0-world-500k.ply',
+            '150k': '/worlds/example/output/world/0-world-150k.ply',
+          },
+        },
+      },
+    }
+    expect(getSplatUrl(world, ViewerQuality.Low)).toBe('/worlds/example/output/world/0-world-150k.ply')
+  })
+
+  it('getSplatUrl uses lighter local splats when full-res is absent', () => {
+    expect(getSplatUrl(exampleWorld)).toBe('/worlds/example/output/world/0-world-500k.ply')
   })
 
   it('getSplatUrl falls back to full-res SPZ', () => {
@@ -107,7 +124,7 @@ describe('worldLoader', () => {
     expect(getSplatUrl(world)).toBe('/worlds/example/output/world/0-world-full_res.spz')
   })
 
-  it('getSplatUrl ignores non-full-res splats', () => {
+  it('getSplatUrl accepts non-full-res local splats', () => {
     const world = {
       ...exampleWorld,
       assets: {
@@ -119,7 +136,7 @@ describe('worldLoader', () => {
         },
       },
     }
-    expect(getSplatUrl(world)).toBe('')
+    expect(getSplatUrl(world)).toBe('/worlds/example/output/world/0-world-500k.ply')
   })
 
   it('getSplatUrl refuses provider URLs', () => {
@@ -129,6 +146,7 @@ describe('worldLoader', () => {
         ...exampleWorld.assets,
         splats: {
           ...exampleWorld.assets.splats,
+          ply_urls: {},
           spz_urls: { full_res: 'https://cdn.example.com/splat_full.spz' },
         },
       },

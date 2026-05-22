@@ -18,6 +18,8 @@
     "ib:fal": "node pipeline/fal/run-fal.mjs",
     "ib:ensure-assets": "node pipeline/project/ensure-local-assets.mjs",
     "ib:spz-to-ply": "node pipeline/splats/convert-spz-to-ply.mjs",
+    "ib:rhino-ply": "node pipeline/splats/export-rhino-ply.mjs",
+    "ib:rhino-handoff": "node pipeline/handoff/rhino-handoff.mjs",
     "ib:preflight": "node pipeline/project/preflight.mjs"
   },
   "dependencies": {

@@ -1,5 +1,5 @@
 import worlds from 'virtual:worlds'
-import { type World, type WorldEntry } from '../types/world'
+import { ViewerQuality, type World, type WorldEntry } from '../types/world'
 
 export function loadWorlds(): WorldEntry[] {
   return worlds as WorldEntry[]
@@ -17,7 +17,17 @@ function localWorldAssetUrl(url: string | undefined): string {
   return url?.startsWith('/worlds/') ? url : ''
 }
 
-export function getSplatUrl(world: World): string {
-  return localWorldAssetUrl(world.assets.splats.ply_urls?.full_res)
-    || localWorldAssetUrl(world.assets.splats.spz_urls.full_res)
+export function getSplatUrl(world: World, quality = ViewerQuality.High): string {
+  const preferredKeys = quality === ViewerQuality.Low
+    ? ['150k', '100k', '500k', 'full_res']
+    : ['500k', '150k', '100k', 'full_res']
+
+  for (const key of preferredKeys) {
+    const plyUrl = world.assets.splats.ply_urls?.[key as keyof NonNullable<World['assets']['splats']['ply_urls']>]
+    const spzUrl = world.assets.splats.spz_urls[key as keyof World['assets']['splats']['spz_urls']]
+    const localUrl = localWorldAssetUrl(plyUrl) || localWorldAssetUrl(spzUrl)
+    if (localUrl) return localUrl
+  }
+
+  return ''
 }

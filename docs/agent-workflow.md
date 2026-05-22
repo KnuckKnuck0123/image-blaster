@@ -34,11 +34,15 @@ npm run ib:3d -- --world "<slug>" --object-id "<object-slug>"
 npm run ib:sfx -- --prompt "<literal sound prompt>" --output-dir "worlds/<slug>/output/sfx"
 npm run ib:image-edit -- --image "<path>" --prompt "<edit prompt>" --output-dir "<dir>"
 npm run ib:ensure-assets -- --from "<request-json-path>"
+npm run ib:rhino-ply -- --input "worlds/<slug>/output/world/0-world-500k.ply"
+npm run ib:rhino-handoff -- --world "<slug>"
 ```
 
 The aliases call `node pipeline/...` directly. Existing Claude skills remain as backward-compatible adapters while new agents should use these neutral commands. Current first-class adapters live in `adapters/openclaw/`, `adapters/codex/`, and `adapters/gemini/`.
 
 World splats default to `.ply` for compatibility with Blender, Houdini, Unity, Unreal, Spark, and other Gaussian-splat tooling. `ib:world` and `ib:ensure-assets` accept `--splat-format ply|spz|both`; use `ply` unless a downstream target specifically needs compressed SPZ.
+
+For Rhino, convert Gaussian-splat PLY files to ordinary RGB point-cloud PLY files before import. `ib:rhino-ply` converts one file. `ib:rhino-handoff` creates `worlds/<slug>/handoff/rhino/` with the collider GLB, RGB point cloud, panorama, manifest, and import notes. The default handoff prefers the `500k` point cloud for visual fidelity; pass `--density 150k` or `--density 100k` for lighter files.
 
 Run `ib:preflight` before paid work. It loads `.env`, reports which provider keys are present, shows which stages are ready, and prints rough per-operation cost notes. Use `--strict` in automation to fail when required generation keys are missing.
 
