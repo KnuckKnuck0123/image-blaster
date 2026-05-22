@@ -10,6 +10,7 @@ Repository contract:
 - Shared project state lives under worlds/<slug>/.
 - Portable scripts live under pipeline/.
 - Use root aliases: ib:project, ib:world, ib:3d, ib:sfx, ib:image-edit, ib:fal, ib:ensure-assets.
+- Use ib:rhino-handoff when the target tool is Rhino.
 - Run ib:preflight before paid provider calls.
 - World splats default to `.ply`; use `--splat-format spz` or `--splat-format both` only for explicit SPZ needs.
 - Do not write provider secrets into files.
@@ -29,6 +30,8 @@ Standard flow:
 7. Generate SFX or edits only when requested.
 8. Repair missing provider downloads:
    npm run ib:ensure-assets -- --from "<request-json-path>"
+9. For Rhino workflows, package the handoff:
+   npm run ib:rhino-handoff -- --world "<slug>"
 
-Final responses should list local artifacts, request metadata files, and unresolved provider or credential issues.
+Final responses should list local artifacts, request metadata files, and unresolved provider or credential issues. For Rhino, explain that the GLB is the spatial scaffold and the RGB point-cloud PLY is the visual/detail layer.
 ```

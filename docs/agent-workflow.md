@@ -6,6 +6,8 @@
 
 Agents should treat `pipeline/` as the stable execution layer and `worlds/<slug>/` as the shared artifact envelope. Do not write runtime state into prompts or adapter files. Persist project state, analysis, request metadata, generated assets, and local downloads under the world directory.
 
+The same pipeline must work with or without an agent. Direct users run `npm run ib:*` commands by hand. Agents run those same commands after adding planning, source-image analysis, prompt writing, and confirmation around paid provider calls.
+
 ## Project Shape
 
 ```text
@@ -45,6 +47,50 @@ World splats default to `.ply` for compatibility with Blender, Houdini, Unity, U
 For Rhino, convert Gaussian-splat PLY files to ordinary RGB point-cloud PLY files before import. `ib:rhino-ply` converts one file. `ib:rhino-handoff` creates `worlds/<slug>/handoff/rhino/` with the collider GLB, RGB point cloud, panorama, manifest, and import notes. The default handoff prefers the `500k` point cloud for visual fidelity; pass `--density 150k` or `--density 100k` for lighter files.
 
 Run `ib:preflight` before paid work. It loads `.env`, reports which provider keys are present, shows which stages are ready, and prints rough per-operation cost notes. Use `--strict` in automation to fail when required generation keys are missing.
+
+## Direct CLI Workflow
+
+Use this path when a human is driving the pipeline from a terminal:
+
+1. Copy `.env.example` to `.env` and fill `WORLD_LABS_API_KEY` and `FAL_KEY`.
+2. Put source images in `input/`.
+3. Run `npm run ib:preflight`.
+4. Run `npm run ib:project -- --world "<slug>" --stage-input`.
+5. Run `npm run ib:world -- --world "<slug>" --prompt "<empty static environment prompt>"`.
+6. Optionally run `npm run ib:3d`, `npm run ib:sfx`, or `npm run ib:image-edit`.
+7. Run `npm run dev` and open `http://127.0.0.1:5173/<slug>`.
+8. For Rhino, run `npm run ib:rhino-handoff -- --world "<slug>"`.
+
+The user owns all judgment calls: what image to use, what to generate, when to spend provider credits, and which artifacts to import downstream.
+
+## Agent-Assisted Workflow
+
+Use this path when an agent is driving the pipeline:
+
+1. Inspect readiness with `ib:preflight`; do not expose secret values.
+2. Choose one slug and keep all state under `worlds/<slug>/`.
+3. Stage or copy source images into `worlds/<slug>/source/`.
+4. Analyze the source image before paid generation and write `worlds/<slug>/image.json`.
+5. Split the prompt into static environment versus movable objects.
+6. Ask for confirmation before ambiguous paid operations.
+7. Generate the static environment with `ib:world`.
+8. Generate each movable object separately with `ib:3d`.
+9. Run handoff commands for the user's target tool, such as `ib:rhino-handoff`.
+10. Report local files, route, request metadata, and unresolved risks.
+
+The agent should not invent a separate artifact layout. It should add decisions and documentation around the same portable commands a human can run manually.
+
+## Rhino Handoff
+
+`ib:rhino-handoff` is for Rhino-centered design review, not game-runtime delivery. It packages:
+
+- `<slug>-mesh.glb`: rough spatial mesh / scale scaffold.
+- `<slug>-point-cloud-500k-rgb.ply`: default visual/detail point cloud.
+- `<slug>-panorama.png`: panorama reference or environment plate.
+- `manifest.json`: machine-readable source and file record.
+- `README.md`: import order and notes.
+
+World Labs GLB exports may have vertex colors but no image textures, materials, or UVs. Treat the GLB as geometry context. Treat the RGB point cloud as the primary visual read.
 
 ## Agent Responsibilities
 

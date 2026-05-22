@@ -29,6 +29,82 @@ npm run ib:project -- --world "my-world" --stage-input
 
 `ib:preflight` reads `.env`, reports whether `WORLD_LABS_API_KEY` and `FAL_KEY` are present, and prints the rough cost envelope for each paid provider before generation.
 
+## Use Without An Agent
+
+Run the portable pipeline commands directly from the repository root. This is the best path when you already know the source image, world slug, and prompt.
+
+1. Add provider keys to a local `.env` file:
+
+```bash
+cp .env.example .env
+```
+
+```env
+WORLD_LABS_API_KEY=...
+FAL_KEY=...
+```
+
+2. Check readiness:
+
+```bash
+npm run ib:preflight
+```
+
+Use `--strict` when automation should fail on missing keys.
+
+3. Create a world project and stage an input image:
+
+```bash
+mkdir -p input
+cp /path/to/source-image.jpg input/
+npm run ib:project -- --world "my-world" --stage-input
+```
+
+4. Generate the static world:
+
+```bash
+npm run ib:world -- --world "my-world" --prompt "Empty static environment prompt"
+```
+
+World splats default to PLY. Use `--splat-format both` only when you need both PLY and SPZ.
+
+5. Launch the viewer:
+
+```bash
+npm run dev
+```
+
+Open `http://127.0.0.1:5173/my-world`.
+
+6. Package a Rhino handoff:
+
+```bash
+npm run ib:rhino-handoff -- --world "my-world"
+```
+
+This writes `worlds/my-world/handoff/rhino/` with a GLB mesh, RGB point-cloud PLY, panorama, manifest, and import notes.
+
+## Use With An Agent
+
+Agents should use the same `npm run ib:*` commands. The agent's job is planning, image analysis, prompt writing, confirmation before paid calls, and reporting artifact paths. The pipeline owns provider calls and file layout.
+
+Recommended agent flow:
+
+1. Run `npm run ib:preflight` before paid generation.
+2. Choose a stable slug for `worlds/<slug>/`.
+3. Stage the source image through `npm run ib:project -- --world "<slug>" --stage-input`, or place it directly in `worlds/<slug>/source/`.
+4. Analyze the source image and write `worlds/<slug>/image.json`.
+5. Generate an empty static environment with `npm run ib:world -- --world "<slug>" --prompt "..."`.
+6. Generate dynamic props one at a time with `npm run ib:3d -- --world "<slug>" --object-id "<object-slug>"`.
+7. Use `npm run ib:rhino-handoff -- --world "<slug>"` when the target is Rhino.
+8. Report local artifact paths and any provider/request metadata needed for audit.
+
+Available agent adapters:
+
+- `adapters/openclaw/image-blaster/SKILL.md`
+- `adapters/codex/image-blaster/SKILL.md`
+- `adapters/gemini/image-blaster.md`
+
 ### Description
 
 By default `image-blaster` will use your input image to create:

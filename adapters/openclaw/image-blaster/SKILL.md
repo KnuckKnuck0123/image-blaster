@@ -97,11 +97,20 @@ npm run ib:sfx -- --prompt "<sound prompt>" --output-dir "<target output dir>" -
 npm run ib:ensure-assets -- --from "<request-json-path>"
 ```
 
+9. For Rhino handoff, package the world into a DCC-friendly folder:
+
+```bash
+npm run ib:rhino-handoff -- --world "<slug>"
+```
+
+This writes `worlds/<slug>/handoff/rhino/` with a collider GLB, RGB point-cloud PLY, panorama, manifest, and README. The default point cloud is 500k for visual fidelity; use `--density 150k` or `--density 100k` when import performance matters more.
+
 ## Rules
 
 - Ask before paid remote generation if the operation, endpoint, or target object is unclear.
 - Run `npm run ib:preflight` before paid generation unless this session already verified keys.
 - Keep API keys in environment variables only.
 - Report local output paths and request metadata paths.
+- For Rhino workflows, report the handoff folder and clarify that the GLB is geometry context while the RGB PLY is the visual/detail layer.
 - Prefer local artifacts over provider URLs in final project state.
 - Default to `.ply` splats. Use SPZ only when the downstream tool explicitly needs compressed splats.
